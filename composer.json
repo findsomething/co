@@ -1,0 +1,19 @@
+{
+  "name": "fsth/co",
+  "description": "",
+  "autoload": {
+    "psr-4": {
+      "FSth\\Co\\": "src"
+    }
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "qiqisan",
+      "email": "qiqisan1@126.com"
+    }
+  ],
+  "require": {
+
+  }
+}
