@@ -27,8 +27,12 @@ class BufferChannel
     {
         return Call::callCC(function ($cc) {
             if ($this->queue->isEmpty()) {
+
+                // 当无数据可接收时，$cc入列,让出控制流，挂起接收者协程
                 $this->receiveCC->enqueue($cc);
             } else {
+
+                // 当有数据可接收时，先接收数据，然后恢复控制流
                 $val = $this->queue->dequeue();
                 $this->capacity++;
                 $cc($val, null);
@@ -42,11 +46,15 @@ class BufferChannel
     public function send($val)
     {
         return Call::callCC(function ($cc) use ($val) {
+
+            // 当缓存未满，发送数据直接加入缓存，然后恢复控制流
             if ($this->capacity > 0) {
                 $this->queue->enqueue($val);
                 $this->capacity--;
                 $cc(null, null);
             } else {
+
+                // 当缓存满，发送者控制流与发送数据入列，让出控制流,挂起发送者协程
                 $this->sendCC->enqueue([$cc, $val]);
             }
 

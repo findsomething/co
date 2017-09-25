@@ -4,27 +4,30 @@ include __DIR__ . "/../vendor/autoload.php";
 
 use FSth\Co\Call;
 
-//function newSubGen()
-//{
-//    yield 0;
-//    throw new \Exception("e");
-//    yield 1;
-//}
+function newSubGen()
+{
+    yield 0;
+    throw new \Exception("e");
+    yield 1;
+}
 
-//
-//function newGen()
-//{
-//    $r1 = (yield newSubGen());
-//    $r2 = (yield 2);
+
+function newGen()
+{
+    $r1 = (yield newSubGen());
+    $r2 = (yield 2);
 //    echo $r1, $r2;
-//    yield 3;
-//}
-//
-//$task = new \FSth\Co\AsyncTask(newGen());
-//$trace = function ($r) {
-//    echo $r;
-//};
-//$task->begin($trace);
+    yield 3;
+}
+
+$task = new \FSth\Co\AsyncTask(newGen());
+$trace = function ($r, \Exception $ex) {
+    echo $r;
+    if ($ex != null) {
+        var_dump($ex->getMessage());
+    }
+};
+$task->begin($trace);
 
 //class AsyncSleep implements \FSth\Co\Async
 //{
@@ -120,52 +123,52 @@ use FSth\Co\Call;
 //$task = new \FSth\Co\AsyncTask(ctxTest());
 //$task->begin($trace);
 
-function async_sleep($ms)
-{
-    return Call::callCC(function ($k) use ($ms) {
-        swoole_timer_after($ms, function () use ($k) {
-            $k(null);
-        });
-    });
-}
-
-function async_dns_lookup($host)
-{
-    return Call::callCC(function ($k) use ($host) {
-        swoole_async_dns_lookup($host, function ($host, $ip) use ($k) {
-            $k($ip);
-        });
-    });
-}
-
-class HttpClient extends swoole_http_client
-{
-    public function async_get($uri)
-    {
-        return Call::callCC(function ($k) use ($uri) {
-            $this->get($uri, $k);
-        });
-    }
-
-    public function async_post($uri, $post)
-    {
-        return Call::callCC(function ($k) use ($uri, $post) {
-            $this->post($uri, $post, $k);
-        });
-    }
-
-    public function async_execute($uri)
-    {
-        return Call::callCC(function ($k) use ($uri) {
-            $this->execute($uri, $k);
-        });
-    }
-}
-
-Call::spawn(function () {
-    $ip = (yield async_dns_lookup("www.baidu.com"));
-    $cli = new HttpClient($ip, 80);
-    $cli->setHeaders(["foo" => "bar"]);
-    $cli = (yield $cli->async_get("/"));
-    echo $cli->body, "\n";
-});
+//function async_sleep($ms)
+//{
+//    return Call::callCC(function ($k) use ($ms) {
+//        swoole_timer_after($ms, function () use ($k) {
+//            $k(null);
+//        });
+//    });
+//}
+//
+//function async_dns_lookup($host)
+//{
+//    return Call::callCC(function ($k) use ($host) {
+//        swoole_async_dns_lookup($host, function ($host, $ip) use ($k) {
+//            $k($ip);
+//        });
+//    });
+//}
+//
+//class HttpClient extends swoole_http_client
+//{
+//    public function async_get($uri)
+//    {
+//        return Call::callCC(function ($k) use ($uri) {
+//            $this->get($uri, $k);
+//        });
+//    }
+//
+//    public function async_post($uri, $post)
+//    {
+//        return Call::callCC(function ($k) use ($uri, $post) {
+//            $this->post($uri, $post, $k);
+//        });
+//    }
+//
+//    public function async_execute($uri)
+//    {
+//        return Call::callCC(function ($k) use ($uri) {
+//            $this->execute($uri, $k);
+//        });
+//    }
+//}
+//
+//Call::spawn(function () {
+//    $ip = (yield async_dns_lookup("www.baidu.com"));
+//    $cli = new HttpClient($ip, 80);
+//    $cli->setHeaders(["foo" => "bar"]);
+//    $cli = (yield $cli->async_get("/"));
+//    echo $cli->body, "\n";
+//});

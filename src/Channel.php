@@ -4,6 +4,8 @@ namespace FSth\Co;
 
 class Channel
 {
+    // 因为同一个channel可能有多个接收者，使用队列实现，保证调度均衡
+    // 队列内保存的是被阻塞的接收者协程的控制流，即call/cc的参数,我们模拟的continuation
     protected $recvQ;
     protected $sendQ;
 
@@ -17,6 +19,7 @@ class Channel
     {
         return Call::callCC(function ($cc) use ($val) {
             if ($this->recvQ->isEmpty()) {
+                // 当chan没有接收者，发送者协程挂起(将$cc入列,不调用$cc回送数据)
                 $this->sendQ->enqueue([$cc, $val]);
             } else {
                 // 当chan对端有接收者，将挂起接收者协程出列,
